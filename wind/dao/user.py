@@ -1,32 +1,27 @@
-from wind.utils.mysql import DB
-import logging
+#! /usr/bin/env python3
+#! -*- coding:utf-8 -*-
 
-logger = logging.getLogger('wind')
+from wind.dao import WindDaoBase
 
-class UserDao():
+class UserDao(WindDaoBase):
     def __init__(self):
         super(UserDao, self).__init__()
 
     def user_auth(self, username, password):
-        with DB() as db:
-            sql = "select username,password from user where username = \'{0}\' and password = MD5({1})".format(username,password)
+        with self.db as db:
+            sql = "select username, password from USER where username = \"{0}\" and password = MD5(\"{1}\")".format(username,password)
             db.execute(sql)
             data = db.fetchall()
             return data
 
-    def token_save(self,token,username):
-        with DB() as db:
-            sql = "insert into tokens(token,username,expire_time) values (\'{0}\',\'{1}\',date_sub(NOW(),interval -1 day));".format(token,username)
+    def token_save(self,token, username):
+        with self.db as db:
+            sql = "insert into TOKENS(token,username,expire_time) values (\"{0}\",\"{1}\",date_sub(NOW(),interval -1 day));".format(token,username)
             db.execute(sql)
                 
-    def create_user(self, username, password, groupid):
-        with DB() as db:
-            sql = "insert into user(username,password,create_time,group_id) values (\'{0}\',MD5({1}),NOW(),{2});".format(username,password,groupid)
-            db.execute(sql)
-    
     def get_token(self, token):
-        with DB() as db:
-            sql = "select username from tokens where token=\'{0}\';".format(token)
+        with self.db as db:
+            sql = "select username from TOKENS where token=\"{0}\";".format(token)
             db.execute(sql)
             data = db.fetchall()
             return data

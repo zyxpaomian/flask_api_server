@@ -7,10 +7,10 @@ from flask import request, g
 from oslo_serialization import jsonutils
 from oslo_log import log
 from oslo_config import cfg
-from wind.exception as exception
-from wind.controller.user import User_Mgt
+import wind.exception as exception
+from wind.controller.user import UserController
 
-LOG  log.getLoggere(__name__)
+LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 '''
 用于api的认证
@@ -21,7 +21,7 @@ def token_required(f):
         if request.headers.get("Auth-Token", None) is None:
             raise exception.AuthError
         token = request.headers.get("Auth-Token", None)
-        user = User_Mgt().get_user_by_token(token)
+        user = UserController.get_user_by_token(token)
         # 将用户信息存放到g里，方便后续使用
         g.current_user = user
         return f(*args, **kwargs)
@@ -42,8 +42,8 @@ def api_except(f):
             except:
                 LOG.error(str(e))
             if isinstance(e, exception.APIError):
-                return __(str(e), 400)
-            return __(str(e), 500)
+                return return_format(str(e), 400)
+            return return_format(str(e), 500)
     return _abort_check
 
 
@@ -56,13 +56,15 @@ def return_format(data=None, code=200):
         result['result'] = data
     if code != 200 and data is None:
         result['result'] = "failed"
+    if code != 200 and data is not None:
+        result['result'] = data
     try:
         return json.dumps(result), code
     except:
         class SmartEncoder(jsonutils.json.JSONEncoder):
             def default(self, obj):
                 if not isinstance(obj, dict) and hasattr(obj, "iteritems"):
-                    return dict(obj,,iteritems())
+                    return dict(obj, iteritems())
                 return super(SmartEncoder, self).default(obj)
         return jsonutils.dumps(result, cls=SmartEncoder), code
 

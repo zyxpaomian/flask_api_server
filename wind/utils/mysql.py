@@ -1,21 +1,23 @@
 #! /usr/bin/env python3
 #! -*- coding:utf-8 -*-
-import MySQLdb
-from wind.utils.conf import Config
-import logging
 
-logger = logging.getLogger('wind')
+import MySQLdb
+from oslo_config import cfg
+
+CONF = cfg.CONF
+
+MYSQL_DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
 
 class DB():
-    def __init__(self,host=None,port=None,username=None,password=None,schema=None):
-        self.conf = Config()
-        self.host = host or self.conf.getconf("mysql").host
-        self.port = port or self.conf.getconf("mysql").port
-        self.username = host or self.conf.getconf("mysql").username
-        self.password = host or self.conf.getconf("mysql").password
-        self.schema = host or self.conf.getconf("mysql").schema
+    def __init__(self,host, port, username, password, schema):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.schema = schema
 
     def __enter__(self):
+        print("##########")
         self.conn = None
         self.cursor = None
         try:
